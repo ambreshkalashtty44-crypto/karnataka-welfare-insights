@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, CircleMarker, Tooltip, GeoJSON } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Tooltip, Popup, GeoJSON } from "react-leaflet";
 import { PageHeader } from "@/components/app/PageHeader";
 import { fetchData } from "@/server/api.functions";
 import { KARNATAKA_DISTRICTS } from "@/data/karnataka";
@@ -24,34 +24,35 @@ function color(score: number | null) {
   return "#3fa66a";
 }
 
+interface DistrictInfo { avg: number; worst: { scheme: string; score: number } }
+
 function MapPage() {
   const [data, setData] = useState<Rec[] | null>(null);
   const [geo, setGeo] = useState<GeoJSON.FeatureCollection | null>(null);
 
   useEffect(() => {
     fetchData().then(setData);
-    // Try to fetch Karnataka district GeoJSON; fall back gracefully if blocked.
     fetch("https://raw.githubusercontent.com/geohacker/karnataka/master/district/karnataka_district.geojson")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j) => setGeo(j))
-      .catch(() => setGeo(null));
+      .then((r) => (r.ok ? r.json() : null)).then(setGeo).catch(() => setGeo(null));
   }, []);
 
-  const byDistrict = useMemo(() => {
-    const m = new Map<string, number>();
+  const info = useMemo(() => {
+    const m = new Map<string, DistrictInfo>();
     if (!data) return m;
     const latest = Math.max(...data.map((d) => d.year));
     for (const dist of new Set(data.map((d) => d.district))) {
       const rows = data.filter((r) => r.district === dist && r.year === latest);
-      m.set(dist, rows.reduce((s, r) => s + r.coverage_gap_score, 0) / rows.length);
+      const avg = rows.reduce((s, r) => s + r.coverage_gap_score, 0) / rows.length;
+      const worst = rows.reduce((a, b) => (a.coverage_gap_score < b.coverage_gap_score ? a : b));
+      m.set(dist, { avg, worst: { scheme: worst.scheme, score: worst.coverage_gap_score } });
     }
     return m;
   }, [data]);
 
-  const lookup = (name: string): number | null => {
+  const lookup = (name: string): DistrictInfo | null => {
     if (!name) return null;
     const norm = name.toLowerCase().replace(/\s+/g, "");
-    for (const [k, v] of byDistrict) {
+    for (const [k, v] of info) {
       if (k.toLowerCase().replace(/\s+/g, "") === norm) return v;
     }
     return null;
@@ -59,75 +60,43 @@ function MapPage() {
 
   return (
     <>
-      <PageHeader
-        title="District Map"
-        subtitle="Color-coded coverage across all 31 districts of Karnataka"
-      />
+      <PageHeader title="District Map" subtitle="Color-coded coverage across all 31 districts of Karnataka" />
       <div className="p-8 space-y-4">
         <Legend />
         <div className="rounded-xl border overflow-hidden bg-card shadow-sm" style={{ height: 600 }}>
           {data && (
-            <MapContainer
-              center={[14.5, 76.0]}
-              zoom={7}
-              style={{ height: "100%", width: "100%" }}
-              scrollWheelZoom
-            >
-              <TileLayer
-                attribution="&copy; OpenStreetMap"
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
+            <MapContainer center={[14.5, 76.0]} zoom={7} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
+              <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               {geo && (
                 <GeoJSON
                   data={geo}
                   style={(f) => {
-                    const name =
-                      (f?.properties as Record<string, string> | undefined)?.DISTRICT ||
-                      (f?.properties as Record<string, string> | undefined)?.district ||
-                      (f?.properties as Record<string, string> | undefined)?.NAME_2 ||
-                      "";
-                    const score = lookup(name);
-                    return {
-                      color: "#374151",
-                      weight: 1,
-                      fillColor: color(score),
-                      fillOpacity: 0.55,
-                    };
-                  }}
-                  onEachFeature={(f, layer) => {
-                    const props = f.properties as Record<string, string> | undefined;
-                    const name = props?.DISTRICT || props?.district || props?.NAME_2 || "Unknown";
-                    const s = lookup(name);
-                    layer.bindTooltip(
-                      `<strong>${name}</strong><br/>Coverage: ${
-                        s == null ? "No Data" : (s * 100).toFixed(1) + "%"
-                      }`,
-                      { sticky: true }
-                    );
+                    const p = f?.properties as Record<string, string> | undefined;
+                    const name = p?.DISTRICT || p?.district || p?.NAME_2 || "";
+                    return { color: "#374151", weight: 1, fillColor: color(lookup(name)?.avg ?? null), fillOpacity: 0.55 };
                   }}
                 />
               )}
               {KARNATAKA_DISTRICTS.map((d) => {
-                const s = byDistrict.get(d.name) ?? null;
+                const i = info.get(d.name) ?? null;
                 return (
                   <CircleMarker
                     key={d.name}
                     center={[d.lat, d.lng]}
-                    radius={9}
-                    pathOptions={{
-                      color: "#1f2937",
-                      weight: 1,
-                      fillColor: color(s),
-                      fillOpacity: 0.9,
-                    }}
+                    radius={10}
+                    pathOptions={{ color: "#1f2937", weight: 1, fillColor: color(i?.avg ?? null), fillOpacity: 0.9 }}
                   >
-                    <Tooltip direction="top">
-                      <div>
-                        <strong>{d.name}</strong>
-                        <br />
-                        Coverage: {s == null ? "No Data" : (s * 100).toFixed(1) + "%"}
+                    <Tooltip direction="top">{d.name}</Tooltip>
+                    <Popup>
+                      <div className="text-sm">
+                        <div className="font-semibold text-base">{d.name}</div>
+                        <div className="mt-1">Coverage: <strong>{i ? (i.avg * 100).toFixed(1) + "%" : "No Data"}</strong></div>
+                        {i && (
+                          <div>Worst scheme: <strong>{i.worst.scheme}</strong> ({(i.worst.score * 100).toFixed(1)}%)</div>
+                        )}
+                        <div className="mt-1 text-xs opacity-70">Population: {d.population.toLocaleString()} · Literacy: {d.literacy}%</div>
                       </div>
-                    </Tooltip>
+                    </Popup>
                   </CircleMarker>
                 );
               })}
