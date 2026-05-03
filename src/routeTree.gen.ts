@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SchemesRouteImport } from './routes/schemes'
 import { Route as RulesRouteImport } from './routes/rules'
 import { Route as MapRouteImport } from './routes/map'
+import { Route as ClustersRouteImport } from './routes/clusters'
 import { Route as IndexRouteImport } from './routes/index'
 
 const SchemesRoute = SchemesRouteImport.update({
@@ -29,6 +30,11 @@ const MapRoute = MapRouteImport.update({
   path: '/map',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClustersRoute = ClustersRouteImport.update({
+  id: '/clusters',
+  path: '/clusters',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -37,12 +43,14 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/clusters': typeof ClustersRoute
   '/map': typeof MapRoute
   '/rules': typeof RulesRoute
   '/schemes': typeof SchemesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/clusters': typeof ClustersRoute
   '/map': typeof MapRoute
   '/rules': typeof RulesRoute
   '/schemes': typeof SchemesRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/clusters': typeof ClustersRoute
   '/map': typeof MapRoute
   '/rules': typeof RulesRoute
   '/schemes': typeof SchemesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/map' | '/rules' | '/schemes'
+  fullPaths: '/' | '/clusters' | '/map' | '/rules' | '/schemes'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/map' | '/rules' | '/schemes'
-  id: '__root__' | '/' | '/map' | '/rules' | '/schemes'
+  to: '/' | '/clusters' | '/map' | '/rules' | '/schemes'
+  id: '__root__' | '/' | '/clusters' | '/map' | '/rules' | '/schemes'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ClustersRoute: typeof ClustersRoute
   MapRoute: typeof MapRoute
   RulesRoute: typeof RulesRoute
   SchemesRoute: typeof SchemesRoute
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MapRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clusters': {
+      id: '/clusters'
+      path: '/clusters'
+      fullPath: '/clusters'
+      preLoaderRoute: typeof ClustersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ClustersRoute: ClustersRoute,
   MapRoute: MapRoute,
   RulesRoute: RulesRoute,
   SchemesRoute: SchemesRoute,
