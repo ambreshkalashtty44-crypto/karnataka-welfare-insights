@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SchemesRouteImport } from './routes/schemes'
 import { Route as RulesRouteImport } from './routes/rules'
+import { Route as ReportRouteImport } from './routes/report'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as ClustersRouteImport } from './routes/clusters'
 import { Route as IndexRouteImport } from './routes/index'
@@ -23,6 +24,11 @@ const SchemesRoute = SchemesRouteImport.update({
 const RulesRoute = RulesRouteImport.update({
   id: '/rules',
   path: '/rules',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportRoute = ReportRouteImport.update({
+  id: '/report',
+  path: '/report',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MapRoute = MapRouteImport.update({
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/clusters': typeof ClustersRoute
   '/map': typeof MapRoute
+  '/report': typeof ReportRoute
   '/rules': typeof RulesRoute
   '/schemes': typeof SchemesRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/clusters': typeof ClustersRoute
   '/map': typeof MapRoute
+  '/report': typeof ReportRoute
   '/rules': typeof RulesRoute
   '/schemes': typeof SchemesRoute
 }
@@ -60,21 +68,30 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/clusters': typeof ClustersRoute
   '/map': typeof MapRoute
+  '/report': typeof ReportRoute
   '/rules': typeof RulesRoute
   '/schemes': typeof SchemesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/clusters' | '/map' | '/rules' | '/schemes'
+  fullPaths: '/' | '/clusters' | '/map' | '/report' | '/rules' | '/schemes'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/clusters' | '/map' | '/rules' | '/schemes'
-  id: '__root__' | '/' | '/clusters' | '/map' | '/rules' | '/schemes'
+  to: '/' | '/clusters' | '/map' | '/report' | '/rules' | '/schemes'
+  id:
+    | '__root__'
+    | '/'
+    | '/clusters'
+    | '/map'
+    | '/report'
+    | '/rules'
+    | '/schemes'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ClustersRoute: typeof ClustersRoute
   MapRoute: typeof MapRoute
+  ReportRoute: typeof ReportRoute
   RulesRoute: typeof RulesRoute
   SchemesRoute: typeof SchemesRoute
 }
@@ -93,6 +110,13 @@ declare module '@tanstack/react-router' {
       path: '/rules'
       fullPath: '/rules'
       preLoaderRoute: typeof RulesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/report': {
+      id: '/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof ReportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/map': {
@@ -123,6 +147,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClustersRoute: ClustersRoute,
   MapRoute: MapRoute,
+  ReportRoute: ReportRoute,
   RulesRoute: RulesRoute,
   SchemesRoute: SchemesRoute,
 }
