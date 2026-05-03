@@ -7,6 +7,7 @@ import { KARNATAKA_DISTRICTS } from "@/data/karnataka";
 import type { Record as Rec } from "@/server/analyzer.server";
 
 export const Route = createFileRoute("/map")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "District Map · Karnataka Welfare Analyzer" },
