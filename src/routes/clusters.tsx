@@ -10,32 +10,32 @@ export const Route = createFileRoute("/clusters")({
   head: () => ({
     meta: [
       { title: "District Clusters · Karnataka Welfare Analyzer" },
-      { name: "description", content: "KMeans clustering of districts by welfare scheme coverage performance." },
+      { name: "description", content: "Clustering of districts by welfare scheme coverage performance." },
     ],
   }),
   component: ClustersPage,
 });
 
-const COLORS = ["#d64545", "#e3b341", "#5b8def", "#3fa66a"];
+const ZONE_COLOR = { red: "#d64545", yellow: "#e3b341", green: "#3fa66a" } as const;
 
 function ClustersPage() {
   const [d, setD] = useState<{ points: ClusterPoint[]; summary: ClusterSummary[] } | null>(null);
   useEffect(() => { fetchClusters().then(setD); }, []);
 
-  if (!d) return <div className="p-8 text-muted-foreground">Running KMeans…</div>;
+  if (!d) return <div className="p-8 text-muted-foreground">Clustering districts…</div>;
 
   return (
     <>
       <PageHeader
         title="District Clusters"
-        subtitle="KMeans (k=4) grouping based on coverage performance"
+        subtitle="Zone-aligned grouping based on coverage performance"
       />
       <div className="p-8 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {d.summary.map((c) => (
             <div key={c.id} className="rounded-xl border bg-card p-5 shadow-sm">
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full" style={{ background: COLORS[c.id] }} />
+                <span className="h-3 w-3 rounded-full" style={{ background: ZONE_COLOR[c.color] }} />
                 <h3 className="font-semibold">{c.label}</h3>
               </div>
               <div className="text-sm text-muted-foreground mt-1">
@@ -43,7 +43,7 @@ function ClustersPage() {
               </div>
               <div className="mt-3 text-xs text-muted-foreground">Suggested action</div>
               <div className="text-sm">{c.action}</div>
-              <ul className="mt-3 max-h-32 overflow-auto text-xs text-muted-foreground space-y-0.5">
+              <ul className="mt-3 max-h-40 overflow-auto text-xs text-muted-foreground space-y-0.5">
                 {c.districts.map((dist) => <li key={dist}>• {dist}</li>)}
               </ul>
             </div>
@@ -59,7 +59,7 @@ function ClustersPage() {
                 data: d.points
                   .filter((p) => p.cluster === c.id)
                   .map((p) => ({ x: p.literacy, y: +(p.avgCoverage * 100).toFixed(1), district: p.district })),
-                backgroundColor: COLORS[c.id],
+                backgroundColor: ZONE_COLOR[c.color],
                 pointRadius: 6,
               })),
             }}
