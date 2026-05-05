@@ -1,6 +1,7 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { LayoutDashboard, Map as MapIcon, BarChart3, GitBranch, Layers, FileText, Sun, Moon } from "lucide-react";
+import { preloadAll } from "@/lib/dataStore";
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -28,6 +29,7 @@ function useDarkMode() {
 export function AppLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [dark, setDark] = useDarkMode();
+  useEffect(() => { preloadAll(); }, []);
   return (
     <div className="min-h-screen flex w-full bg-background">
       <aside className="w-64 shrink-0 bg-sidebar text-sidebar-foreground flex flex-col">

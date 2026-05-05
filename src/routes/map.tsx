@@ -2,9 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, CircleMarker, Tooltip, Popup, GeoJSON } from "react-leaflet";
 import { PageHeader } from "@/components/app/PageHeader";
-import { fetchData } from "@/server/api.functions";
+import { useDataset } from "@/lib/dataStore";
 import { KARNATAKA_DISTRICTS } from "@/data/karnataka";
-import type { Record as Rec } from "@/server/analyzer.server";
 
 export const Route = createFileRoute("/map")({
   ssr: false,
@@ -27,11 +26,10 @@ function color(score: number | null) {
 interface DistrictInfo { avg: number; worst: { scheme: string; score: number } }
 
 function MapPage() {
-  const [data, setData] = useState<Rec[] | null>(null);
+  const data = useDataset();
   const [geo, setGeo] = useState<GeoJSON.FeatureCollection | null>(null);
 
   useEffect(() => {
-    fetchData().then(setData);
     fetch("https://raw.githubusercontent.com/geohacker/karnataka/master/district/karnataka_district.geojson")
       .then((r) => (r.ok ? r.json() : null)).then(setGeo).catch(() => setGeo(null));
   }, []);

@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { Scatter } from "react-chartjs-2";
 import "@/components/app/charts";
 import { PageHeader } from "@/components/app/PageHeader";
-import { fetchClusters } from "@/server/api.functions";
-import type { ClusterPoint, ClusterSummary } from "@/server/analyzer.server";
+import { useClusters } from "@/lib/dataStore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/clusters")({
   head: () => ({
@@ -19,10 +18,18 @@ export const Route = createFileRoute("/clusters")({
 const ZONE_COLOR = { red: "#d64545", yellow: "#e3b341", green: "#3fa66a" } as const;
 
 function ClustersPage() {
-  const [d, setD] = useState<{ points: ClusterPoint[]; summary: ClusterSummary[] } | null>(null);
-  useEffect(() => { fetchClusters().then(setD); }, []);
-
-  if (!d) return <div className="p-8 text-muted-foreground">Clustering districts…</div>;
+  const d = useClusters();
+  if (!d) return (
+    <>
+      <PageHeader title="District Clusters" subtitle="Zone-aligned grouping based on coverage performance" />
+      <div className="p-8 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-64 rounded-xl" />)}
+        </div>
+        <Skeleton className="h-80 rounded-xl" />
+      </div>
+    </>
+  );
 
   return (
     <>

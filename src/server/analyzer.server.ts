@@ -95,12 +95,12 @@ export function getRules(): Rule[] {
   const latest = Math.max(...YEARS);
   const districts = [...new Set(data.map((d) => d.district))];
 
-  // For each district, build set of "Scheme=level" items + map back
+  // Binary transformation: only LOW (<50%) markers per district.
   const basket = new Map<string, Set<string>>();
   for (const dist of districts) {
     const set = new Set<string>();
     for (const r of data.filter((x) => x.district === dist && x.year === latest)) {
-      set.add(`${r.scheme}=${bucket(r.coverage_gap_score)}`);
+      if (r.coverage_gap_score < 0.5) set.add(`${r.scheme}=low`);
     }
     basket.set(dist, set);
   }
@@ -120,10 +120,10 @@ export function getRules(): Rule[] {
       const supA = dA.length / N;
       const supC = districtsWith(c).length / N;
       const supAC = dAC.length / N;
-      if (supAC < 0.12 || supA === 0) continue;
+      if (supAC < 0.08 || supA === 0 || dAC.length < 2) continue;
       const conf = supAC / supA;
       const lift = conf / (supC || 0.0001);
-      if (conf < 0.6) continue;
+      if (conf < 0.55) continue;
       rules.push({
         antecedent: a,
         consequent: c,

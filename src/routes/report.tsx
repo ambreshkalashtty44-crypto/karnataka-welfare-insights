@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { PageHeader, zoneLabel } from "@/components/app/PageHeader";
-import { fetchData } from "@/server/api.functions";
-import type { Record as Rec } from "@/server/analyzer.server";
+import { useDataset } from "@/lib/dataStore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/report")({
   head: () => ({
@@ -30,10 +30,8 @@ interface Row {
 }
 
 function ReportPage() {
-  const [data, setData] = useState<Rec[] | null>(null);
+  const data = useDataset();
   const [filter, setFilter] = useState<Filter>("all");
-
-  useEffect(() => { fetchData().then(setData); }, []);
 
   const rows: Row[] = useMemo(() => {
     if (!data) return [];
@@ -90,7 +88,15 @@ function ReportPage() {
     doc.save("karnataka-coverage-report.pdf");
   };
 
-  if (!data) return <div className="p-8 text-muted-foreground">Loading…</div>;
+  if (!data) return (
+    <>
+      <PageHeader title="Coverage Gap Report" subtitle="Ranked districts with actionable priority" />
+      <div className="p-8 space-y-4">
+        <Skeleton className="h-10 rounded-md w-1/2" />
+        <Skeleton className="h-96 rounded-xl" />
+      </div>
+    </>
+  );
 
   return (
     <>

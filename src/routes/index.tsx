@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Bar, Doughnut } from "react-chartjs-2";
 import "@/components/app/charts";
 import { PageHeader, zoneLabel } from "@/components/app/PageHeader";
-import { fetchData } from "@/server/api.functions";
-import type { Record as Rec } from "@/server/analyzer.server";
+import { useDataset } from "@/lib/dataStore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -28,12 +28,7 @@ function Stat({ label, value, accent }: { label: string; value: string | number;
 }
 
 function Dashboard() {
-  const [data, setData] = useState<Rec[] | null>(null);
-  const [err, setErr] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchData().then(setData).catch((e) => setErr(String(e)));
-  }, []);
+  const data = useDataset();
 
   const stats = useMemo(() => {
     if (!data) return null;
@@ -56,8 +51,7 @@ function Dashboard() {
     return { districts, schemes, avgCov, red, yellow, green, top10 };
   }, [data]);
 
-  if (err) return <div className="p-8 text-destructive">Failed to load: {err}</div>;
-  if (!stats) return <Loading />;
+  if (!stats) return <DashboardSkeleton />;
 
   return (
     <>
@@ -124,8 +118,19 @@ function Dashboard() {
   );
 }
 
-function Loading() {
+function DashboardSkeleton() {
   return (
-    <div className="p-8 text-muted-foreground">Loading dataset from /data API…</div>
+    <>
+      <PageHeader title="Dashboard" subtitle="Statewide overview of welfare scheme utilization (latest year)" />
+      <div className="p-8 space-y-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Skeleton className="lg:col-span-2 h-80 rounded-xl" />
+          <Skeleton className="h-80 rounded-xl" />
+        </div>
+      </div>
+    </>
   );
 }

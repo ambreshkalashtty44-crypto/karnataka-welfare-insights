@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Bar, Line } from "react-chartjs-2";
 import "@/components/app/charts";
 import { PageHeader, zoneLabel } from "@/components/app/PageHeader";
-import { fetchData } from "@/server/api.functions";
+import { useDataset } from "@/lib/dataStore";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SCHEMES, YEARS } from "@/data/karnataka";
 import type { Record as Rec } from "@/server/analyzer.server";
 
@@ -20,11 +21,9 @@ export const Route = createFileRoute("/schemes")({
 const PALETTE = ["#387bc8", "#d64545", "#3fa66a", "#e3b341", "#8b5cf6", "#06b6d4", "#f97316", "#14b8a6", "#ec4899", "#64748b"];
 
 function SchemesPage() {
-  const [data, setData] = useState<Rec[] | null>(null);
+  const data = useDataset();
   const [selected, setSelected] = useState<string[]>([SCHEMES[0], SCHEMES[1], SCHEMES[3]]);
   const [year, setYear] = useState<number>(YEARS[YEARS.length - 1]);
-
-  useEffect(() => { fetchData().then(setData); }, []);
 
   const view = useMemo(() => {
     if (!data) return null;
@@ -51,7 +50,16 @@ function SchemesPage() {
     return { districtRows, trend, districts };
   }, [data, selected, year]);
 
-  if (!view) return <div className="p-8 text-muted-foreground">Loading…</div>;
+  if (!view) return (
+    <>
+      <PageHeader title="Scheme Comparison" subtitle="Multi-scheme district & year-wise breakdown" />
+      <div className="p-8 space-y-6">
+        <Skeleton className="h-24 rounded-xl" />
+        <Skeleton className="h-80 rounded-xl" />
+        <Skeleton className="h-80 rounded-xl" />
+      </div>
+    </>
+  );
 
   const toggle = (s: string) =>
     setSelected((cur) => (cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s]));
