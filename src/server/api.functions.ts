@@ -1,19 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getDataset, getRules, getClusters } from "./analyzer.logic";
 
-// /data
-export const fetchData = createServerFn({ method: "GET" }).handler(async () => {
-  const { getDataset } = await import("./analyzer.logic");
-  return getDataset();
-});
-
-// /rules
-export const fetchRules = createServerFn({ method: "GET" }).handler(async () => {
-  const { getRules } = await import("./analyzer.logic");
-  return getRules();
-});
-
-// /clusters
-export const fetchClusters = createServerFn({ method: "GET" }).handler(async () => {
-  const { getClusters } = await import("./analyzer.logic");
-  return getClusters();
-});
+export const fetchData = createServerFn({ method: "GET" }).handler(async () => getDataset());
+export const fetchRules = createServerFn({ method: "GET" }).handler(async () => getRules());
+export const fetchClusters = createServerFn({ method: "GET" }).handler(async () => getClusters());
