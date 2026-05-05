@@ -31,18 +31,18 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
+      { title: "karnataka-insight-hub" },
       { name: "description", content: "Analyzes Karnataka welfare scheme utilization with interactive maps, charts, and data-driven insights." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
+      { property: "og:title", content: "karnataka-insight-hub" },
       { property: "og:description", content: "Analyzes Karnataka welfare scheme utilization with interactive maps, charts, and data-driven insights." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Lovable App" },
+      { name: "twitter:title", content: "karnataka-insight-hub" },
       { name: "twitter:description", content: "Analyzes Karnataka welfare scheme utilization with interactive maps, charts, and data-driven insights." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8b92aae6-5795-48fc-a91c-d3af1da5aaa8/id-preview-1d5b2a39--4967b3c4-1835-4a8c-97f3-17b4d0a9e55a.lovable.app-1777980339722.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8b92aae6-5795-48fc-a91c-d3af1da5aaa8/id-preview-1d5b2a39--4967b3c4-1835-4a8c-97f3-17b4d0a9e55a.lovable.app-1777980339722.png" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3eea93c4-4442-41c6-bc33-3f827da42242" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3eea93c4-4442-41c6-bc33-3f827da42242" },
     ],
     links: [
       {
