@@ -57,7 +57,7 @@ export function AppLayout() {
           })}
         </nav>
         <div className="p-4 text-xs text-sidebar-foreground/50 border-t border-sidebar-border">
-          Final Year CSE Project · 2025
+          Final Year CSE Project · 2026
         </div>
       </aside>
       <main className="flex-1 overflow-x-hidden relative">
