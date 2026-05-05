@@ -43,9 +43,11 @@ export function getDataset(): Record[] {
   for (const d of KARNATAKA_DISTRICTS) {
     const [lo, hi] = bandFor(d.tier);
     for (const scheme of SCHEMES) {
-      const rand = seeded(hashStr(d.name + scheme));
-      // Each scheme gets its own offset within the district's tier band
-      const schemeOffset = (rand() - 0.5) * 0.18;
+      const rand = seeded(hashStr(d.name + "::" + scheme));
+      // Each scheme gets its own wide offset so coverage varies per (district, scheme).
+      // This ensures association rules pick up DIFFERENT district sets per (A,B) pair
+      // instead of every red-tier district failing on every scheme uniformly.
+      const schemeOffset = (rand() - 0.5) * 0.34;
       const targetLatest = Math.max(0.15, Math.min(0.97, lo + rand() * (hi - lo) + schemeOffset));
       // Earlier years are ~15-25% lower than latest, growing year-on-year
       const startMul = 0.72 + rand() * 0.1;
