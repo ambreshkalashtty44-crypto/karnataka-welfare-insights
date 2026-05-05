@@ -6,7 +6,7 @@ import { PageHeader, zoneLabel } from "@/components/app/PageHeader";
 import { useDataset } from "@/lib/dataStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SCHEMES, YEARS } from "@/data/karnataka";
-import type { Record as Rec } from "@/server/analyzer.server";
+import type { Record as Rec } from "@/server/analyzer.types";
 
 export const Route = createFileRoute("/schemes")({
   head: () => ({
