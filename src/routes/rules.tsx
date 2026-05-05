@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { PageHeader } from "@/components/app/PageHeader";
-import { fetchRules } from "@/server/api.functions";
-import type { Rule } from "@/server/analyzer.server";
+import { useRules } from "@/lib/dataStore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/rules")({
   head: () => ({
@@ -14,50 +14,57 @@ export const Route = createFileRoute("/rules")({
   component: RulesPage,
 });
 
-function fmt(item: string) {
-  const [scheme, level] = item.split("=");
-  const word = level === "low" ? "low (<50%)" : level === "med" ? "moderate (50–75%)" : "high (>75%)";
-  return { scheme, word, level };
+function schemeOf(item: string) {
+  return item.split("=")[0];
 }
 
-function RulesPage() {
-  const [rules, setRules] = useState<Rule[] | null>(null);
-  useEffect(() => { fetchRules().then(setRules); }, []);
+const KALYANA_KARNATAKA = new Set([
+  "Kalaburagi", "Yadgir", "Raichur", "Ballari", "Bidar", "Koppal", "Vijayanagara",
+]);
 
-  if (!rules) return <div className="p-8 text-muted-foreground">Mining rules…</div>;
+function RulesPage() {
+  const rules = useRules();
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
+
+  if (!rules) return (
+    <>
+      <PageHeader title="Association Rules" subtitle="Apriori-mined LOW-coverage co-occurrence patterns" />
+      <div className="p-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-56 rounded-xl" />)}
+      </div>
+    </>
+  );
 
   return (
     <>
       <PageHeader
         title="Association Rules"
-        subtitle="Apriori output — district-level relationships between scheme coverage levels"
+        subtitle="Co-occurring LOW (<50%) coverage patterns across districts"
       />
       <div className="p-8">
         {rules.length === 0 ? (
-          <div className="text-muted-foreground">No rules met the support/confidence threshold.</div>
+          <div className="text-muted-foreground">No LOW-coverage co-occurrence patterns met the threshold.</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {rules.map((r, i) => {
-              const a = fmt(r.antecedent);
-              const c = fmt(r.consequent);
-              const preview = r.districts.slice(0, 3).join(", ");
-              const more = r.districts.length > 3 ? ` +${r.districts.length - 3} more` : "";
+              const aScheme = schemeOf(r.antecedent);
+              const cScheme = schemeOf(r.consequent);
+              const open = openIdx === i;
               return (
-                <div key={i} className="rounded-xl border bg-card p-5 shadow-sm">
+                <div key={i} className="rounded-xl border bg-card p-5 shadow-sm border-l-4" style={{ borderLeftColor: "#d64545" }}>
                   <div className="text-xs uppercase text-muted-foreground tracking-wide">
                     Rule #{i + 1}
                   </div>
                   <div className="mt-2 text-sm leading-relaxed">
-                    <span className="text-muted-foreground">In districts like </span>
-                    <span className="font-semibold">{preview}{more}</span>
-                    <span className="text-muted-foreground">:</span>
-                    <div className="mt-1">
+                    <div>
                       <span className="text-muted-foreground">IF</span>{" "}
-                      <span className="font-semibold">{a.scheme}</span> is{" "}
-                      <span className="font-semibold text-primary">{a.word}</span>{" "}
-                      <span className="text-muted-foreground">→ THEN</span>{" "}
-                      <span className="font-semibold">{c.scheme}</span> is{" "}
-                      <span className="font-semibold text-primary">{c.word}</span>
+                      <span className="font-semibold">{aScheme}</span> is{" "}
+                      <span className="font-semibold" style={{ color: "#d64545" }}>LOW (&lt;50%)</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">THEN</span>{" "}
+                      <span className="font-semibold">{cScheme}</span> is{" "}
+                      <span className="font-semibold" style={{ color: "#d64545" }}>ALSO LOW (&lt;50%)</span>
                     </div>
                   </div>
                   <div className="mt-4 grid grid-cols-3 gap-2 text-center">
@@ -65,14 +72,35 @@ function RulesPage() {
                     <Metric label="Confidence" value={r.confidence} />
                     <Metric label="Lift" value={r.lift} />
                   </div>
-                  <details className="mt-3">
-                    <summary className="text-xs text-muted-foreground cursor-pointer">
-                      All matching districts ({r.districts.length})
-                    </summary>
-                    <div className="mt-2 text-xs text-foreground/80">
-                      {r.districts.join(", ")}
+                  <button
+                    onClick={() => setOpenIdx(open ? null : i)}
+                    className="mt-3 w-full rounded-md border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors"
+                  >
+                    {open ? "Hide" : "Show"} Affected Districts ({r.districts.length})
+                  </button>
+                  {open && (
+                    <div className="mt-2 rounded-md bg-muted/40 p-2">
+                      <div className="text-[10px] uppercase text-muted-foreground mb-1">In districts:</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {r.districts.map((d) => {
+                          const critical = KALYANA_KARNATAKA.has(d);
+                          return (
+                            <span
+                              key={d}
+                              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
+                              style={{
+                                background: critical ? "#d64545" : "#fee2e2",
+                                color: critical ? "white" : "#991b1b",
+                              }}
+                              title={critical ? "Kalyana Karnataka — critical region" : ""}
+                            >
+                              {critical && "★"} {d}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </details>
+                  )}
                 </div>
               );
             })}
