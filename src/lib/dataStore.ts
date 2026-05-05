@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchData, fetchRules, fetchClusters } from "@/server/api.functions";
-import type { Record as Rec, Rule, ClusterPoint, ClusterSummary } from "@/server/analyzer.server";
+import type { Record as Rec, Rule, ClusterPoint, ClusterSummary } from "@/server/analyzer.types";
 
 // Module-level promise caches — fetched ONCE for the lifetime of the app.
 let dataPromise: Promise<Rec[]> | null = null;
