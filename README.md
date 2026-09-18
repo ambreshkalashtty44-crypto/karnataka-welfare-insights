@@ -1,5 +1,9 @@
 # Karnataka Welfare Scheme Utilization Analyzer
 
+# Karnataka Welfare Insight 
+
+Project Link: https://karnataka-insight-hub.vercel.app/
+
 Final-year CSE project: full-stack analytics dashboard for welfare scheme
 coverage across the 31 districts of Karnataka. Includes descriptive
 statistics, an interactive map, scheme comparison, Apriori association rule
